@@ -1,0 +1,100 @@
+// Lviv Croissants — Recipe Cards sandbox
+// Prisma schema. Default datasource is SQLite for local dev. For production
+// switch DATABASE_URL to Postgres (Supabase) — schema is compatible.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Unit of measurement for ingredients
+// kg = kilograms, l = liters, pcs = pieces
+// Stored as string for SQLite portability.
+
+model Ingredient {
+  id            String   @id @default(cuid())
+  nameUk        String
+  nameEn        String?
+  unit          String   // "kg" | "l" | "pcs"
+  pricePerUnit  Float    // UAH per unit (per kg / per l / per pcs)
+  // Cold processing waste % (e.g. trimming, peeling). 0..100
+  wasteColdPct  Float    @default(0)
+  // Thermal processing waste % (e.g. baking, frying). 0..100
+  wasteHotPct   Float    @default(0)
+  supplier      String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         RecipeItem[]
+
+  @@index([nameUk])
+}
+
+model Recipe {
+  id            String   @id @default(cuid())
+  nameUk        String
+  nameEn        String
+  // Versioning code shown in PDF footer, e.g. "NO | 03.26"
+  versionCode   String   @default("NO | 03.26")
+  // Selling price net of VAT (UAH). Used for foodcost calculation.
+  sellingPriceNet Float? 
+  status        String   @default("draft") // draft | published | archived
+  // Total weight override (kg). If null — sum of net weights from items.
+  totalWeightKg Float?
+  authorEmail   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         RecipeItem[]
+  steps         RecipeStep[]
+  versions      RecipeVersion[]
+}
+
+model RecipeItem {
+  id            String   @id @default(cuid())
+  recipeId      String
+  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredientId  String?
+  ingredient    Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+  // Snapshot of ingredient name at the moment of editing (for PDF stability)
+  displayName   String
+  // "kg" or "pcs" — determines how weights are formatted in PDF
+  unit          String
+  // For unit="kg": grossWeight/netWeight are kg (e.g. 0.037)
+  // For unit="pcs": values are integers/halves (e.g. 1, 0.5) — rendered as "1 pcs."
+  grossWeight   Float
+  netWeight     Float
+  // Snapshot of price at the moment of editing (UAH per unit)
+  pricePerUnitSnapshot Float @default(0)
+  sortOrder     Int      @default(0)
+
+  @@index([recipeId])
+}
+
+model RecipeStep {
+  id            String   @id @default(cuid())
+  recipeId      String
+  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  stepNumber    Int
+  text          String
+  sortOrder     Int      @default(0)
+
+  @@index([recipeId])
+}
+
+// Version history snapshots (JSON blob of full recipe state at save time)
+model RecipeVersion {
+  id            String   @id @default(cuid())
+  recipeId      String
+  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  snapshot      String   // JSON
+  authorEmail   String?
+  createdAt     DateTime @default(now())
+
+  @@index([recipeId])
+}
