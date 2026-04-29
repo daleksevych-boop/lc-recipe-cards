@@ -34,6 +34,9 @@ export default function RootLayout({
               <Link href="/ingredients" className="hover:underline">
                 Інгредієнти
               </Link>
+              <Link href="/help" className="hover:underline text-stone-500">
+                Як користуватись
+              </Link>
             </nav>
           </div>
         </header>
