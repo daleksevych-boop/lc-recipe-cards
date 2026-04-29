@@ -63,3 +63,24 @@ prisma/
 Після `npx tsx prisma/seed.ts` буде створена картка `Herring` 1-в-1 за
 вашим референсним PDF (з усіма 11 інгредієнтами, 7 кроками технології,
 фудкостом 95 грн / 56.16 грн собівартість).
+
+## Production deploy (Vercel + Supabase)
+
+Один раз:
+
+1. **Supabase** — створіть проєкт у https://supabase.com/dashboard, регіон
+   `eu-central-1`. Settings → Database → Connection string (URI) →
+   скопіюйте.
+2. **Prisma schema** — у `prisma/schema.prisma` замініть
+   `provider = "sqlite"` на `provider = "postgresql"`.
+3. **Заллийте схему** у Supabase:
+   ```bash
+   DATABASE_URL="postgresql://..." npx prisma db push
+   DATABASE_URL="postgresql://..." npx tsx prisma/seed.ts
+   ```
+4. **Vercel** — імпортуйте репозиторій (https://vercel.com/new), додайте
+   environment variable `DATABASE_URL` з тим самим значенням, що в
+   Supabase. Натисніть Deploy.
+
+`vercel.json` уже містить правильні налаштування для Puppeteer (60s
+timeout, 1024MB memory для PDF-роуту).
