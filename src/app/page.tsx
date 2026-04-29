@@ -17,11 +17,6 @@ export default async function HomePage() {
     <div className="space-y-8">
       <section>
         <h1 className="text-3xl font-bold">Технологічні картки</h1>
-        <p className="mt-2 text-stone-600">
-          Створюйте, редагуйте та експортуйте техкартки круасанів за
-          стандартом Lviv Croissants. Усі ціни — у грн без ПДВ. Фудкост рахується
-          автоматично з довідника інгредієнтів.
-        </p>
       </section>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">

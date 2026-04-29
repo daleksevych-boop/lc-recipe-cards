@@ -3,9 +3,8 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Lviv Croissants — ТК-пісочниця",
-  description:
-    "Технологічні картки круасанів: рецептура, фудкост, експорт у PDF за стандартом мережі.",
+  title: "Lviv Croissants — Технологічні картки",
+  description: "Технологічні картки Lviv Croissants.",
 };
 
 export default function RootLayout({
@@ -24,8 +23,6 @@ export default function RootLayout({
                 style={{ background: "#7D9622" }}
               />
               <span className="font-semibold">Lviv Croissants</span>
-              <span className="text-stone-500">·</span>
-              <span className="text-stone-600">ТК-пісочниця</span>
             </Link>
             <nav className="flex items-center gap-4 text-sm">
               <Link href="/recipes" className="hover:underline">

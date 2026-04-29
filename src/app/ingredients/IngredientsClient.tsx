@@ -100,10 +100,6 @@ export default function IngredientsClient({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Довідник інгредієнтів</h1>
-          <p className="text-sm text-stone-600">
-            Назва, одиниця, ціна за од. (грн), % втрат при холодній і тепловій
-            обробці. Ціна використовується для розрахунку фудкосту.
-          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -137,8 +133,6 @@ export default function IngredientsClient({
               <th className="px-3 py-2">EN</th>
               <th className="px-3 py-2">Од.</th>
               <th className="px-3 py-2 text-right">Ціна, грн/од.</th>
-              <th className="px-3 py-2 text-right">Втрати хол. %</th>
-              <th className="px-3 py-2 text-right">Втрати теп. %</th>
               <th className="px-3 py-2"></th>
             </tr>
           </thead>
@@ -151,8 +145,6 @@ export default function IngredientsClient({
                 <td className="px-3 py-2 text-right">
                   {i.pricePerUnit.toFixed(2)}
                 </td>
-                <td className="px-3 py-2 text-right">{i.wasteColdPct}</td>
-                <td className="px-3 py-2 text-right">{i.wasteHotPct}</td>
                 <td className="px-3 py-2 text-right">
                   <button
                     onClick={() =>
@@ -173,7 +165,7 @@ export default function IngredientsClient({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-stone-500">
+                <td colSpan={5} className="px-3 py-6 text-center text-stone-500">
                   Нічого не знайдено
                 </td>
               </tr>

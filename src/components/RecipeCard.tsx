@@ -93,8 +93,10 @@ export function RecipeCard({ recipe }: Props) {
         @page { size: A4; margin: 0; }
         html, body { margin: 0; padding: 0; }
         * { box-sizing: border-box; }
-        body {
+        body, h1, h2, h3, p, span, td, th, div, button, input, select, textarea {
           font-family: 'Carlito', 'Calibri', 'Segoe UI', sans-serif;
+        }
+        body {
           color: ${TEXT_COLOR};
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
