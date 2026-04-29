@@ -21,7 +21,7 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
   const [form, setForm] = useState<{
     nameUk: string;
     nameEn: string;
-    template: "blank" | "croissant_classic" | "croissant_butter";
+    template: "croissant_classic" | "croissant_butter";
   }>({ nameUk: "", nameEn: "", template: "croissant_classic" });
 
   async function create() {
@@ -208,14 +208,6 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
                     }
                   />
                   Масляний круасан
-                </label>
-                <label className="flex items-center gap-2 py-1">
-                  <input
-                    type="radio"
-                    checked={form.template === "blank"}
-                    onChange={() => setForm({ ...form, template: "blank" })}
-                  />
-                  Без основи
                 </label>
               </fieldset>
             </div>
