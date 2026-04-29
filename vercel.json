@@ -4,7 +4,7 @@
   "functions": {
     "src/app/api/recipes/[id]/pdf/route.ts": {
       "maxDuration": 60,
-      "memory": 1024
+      "memory": 1769
     }
   }
 }
