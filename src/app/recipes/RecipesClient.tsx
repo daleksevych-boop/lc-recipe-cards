@@ -18,7 +18,11 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
   const router = useRouter();
   const [list, setList] = useState(initial);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ nameUk: "", nameEn: "" });
+  const [form, setForm] = useState<{
+    nameUk: string;
+    nameEn: string;
+    template: "blank" | "croissant";
+  }>({ nameUk: "", nameEn: "", template: "croissant" });
 
   async function create() {
     if (!form.nameUk || !form.nameEn) {
@@ -183,6 +187,25 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
                   onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
                 />
               </label>
+              <fieldset className="mt-3 rounded-md border border-stone-200 p-2 text-sm">
+                <legend className="px-1 text-xs text-stone-600">Шаблон</legend>
+                <label className="flex items-center gap-2 py-1">
+                  <input
+                    type="radio"
+                    checked={form.template === "croissant"}
+                    onChange={() => setForm({ ...form, template: "croissant" })}
+                  />
+                  Круасан (стандарт 95г брутто / 80г нетто)
+                </label>
+                <label className="flex items-center gap-2 py-1">
+                  <input
+                    type="radio"
+                    checked={form.template === "blank"}
+                    onChange={() => setForm({ ...form, template: "blank" })}
+                  />
+                  Порожній
+                </label>
+              </fieldset>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button

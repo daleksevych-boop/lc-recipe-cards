@@ -22,13 +22,13 @@ export function RecipeCard({ recipe }: Props) {
 
   return (
     <div className="rc-page">
-      {/* Decorative diagonal watermark */}
-      <div className="rc-watermark">Lviv Croissants</div>
-      {/* Decorative croissant glyphs at corners */}
-      <CroissantDecor className="rc-decor rc-decor-tl" />
-      <CroissantDecor className="rc-decor rc-decor-bl" />
-      <CroissantDecor className="rc-decor rc-decor-tr" />
-      <CroissantDecor className="rc-decor rc-decor-br" />
+      {/* Lviv Croissants logo as a faint centered watermark */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/lviv-croissants-logo.png"
+        alt=""
+        className="rc-watermark-img"
+      />
 
       <div className="rc-content">
         <h1 className="rc-title">{recipe.nameEn || recipe.nameUk}</h1>
@@ -107,31 +107,17 @@ export function RecipeCard({ recipe }: Props) {
           background: #fff;
           overflow: hidden;
         }
-        .rc-watermark {
+        .rc-watermark-img {
           position: absolute;
           top: 50%;
           left: 50%;
-          transform: translate(-50%, -50%) rotate(-30deg);
-          font-size: 90pt;
-          color: rgba(125, 150, 34, 0.06);
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          white-space: nowrap;
+          transform: translate(-50%, -50%);
+          width: 150mm;
+          height: auto;
+          opacity: 0.07;
           pointer-events: none;
           z-index: 0;
         }
-        .rc-decor {
-          position: absolute;
-          width: 70mm;
-          height: 70mm;
-          opacity: 0.08;
-          pointer-events: none;
-          z-index: 0;
-        }
-        .rc-decor-tl { top: -10mm; left: -10mm; transform: rotate(-15deg); }
-        .rc-decor-tr { top: -10mm; right: -10mm; transform: rotate(15deg) scaleX(-1); }
-        .rc-decor-bl { bottom: -10mm; left: -10mm; transform: rotate(15deg); }
-        .rc-decor-br { bottom: -10mm; right: -10mm; transform: rotate(-15deg) scaleX(-1); }
 
         .rc-content { position: relative; z-index: 1; padding-bottom: 24mm; }
 
@@ -229,22 +215,4 @@ export function RecipeCard({ recipe }: Props) {
   );
 }
 
-function CroissantDecor({ className }: { className?: string }) {
-  // Stylized croissant outline — decorative, matches the muted green
-  // accents in the standard PDF.
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 100 100"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      stroke="#7D9622"
-      strokeWidth="1.4"
-    >
-      <path d="M15,55 C12,38 28,18 50,16 C72,14 90,28 92,52 C72,46 56,52 50,72 C44,52 30,46 15,55 Z" />
-      <path d="M25,53 C26,42 38,30 50,28" strokeOpacity="0.7" />
-      <path d="M50,28 C62,30 74,42 80,55" strokeOpacity="0.7" />
-      <path d="M40,40 L46,46 M55,40 L60,45 M65,42 L70,48" strokeOpacity="0.5" />
-    </svg>
-  );
-}
+

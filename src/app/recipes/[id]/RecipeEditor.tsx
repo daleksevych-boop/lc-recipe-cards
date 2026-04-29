@@ -560,12 +560,17 @@ function ItemTable({
                         ingredientId: e.target.value || null,
                         unit: (ing?.unit as Unit) ?? it.unit,
                         pricePerUnitSnapshot: ing?.pricePerUnit ?? 0,
+                        // Auto-translate: when ingredient is changed, keep
+                        // displayName in sync with the EN name from the
+                        // ingredient master.
+                        displayName: ing?.nameEn || ing?.nameUk || "",
                       });
                     }}
                   >
                     {ingredients.map((g) => (
                       <option key={g.id} value={g.id}>
                         {g.nameUk}
+                        {g.nameEn ? ` — ${g.nameEn}` : ""}
                       </option>
                     ))}
                   </select>
@@ -656,9 +661,13 @@ function AddItem({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const filtered = ingredients.filter((i) =>
-    i.nameUk.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = ingredients.filter((i) => {
+    const q = search.toLowerCase();
+    return (
+      i.nameUk.toLowerCase().includes(q) ||
+      (i.nameEn ?? "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="mt-3 flex items-center gap-2">
@@ -693,10 +702,15 @@ function AddItem({
                 }}
                 className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-stone-100"
               >
-                {i.nameUk}{" "}
-                <span className="text-stone-400">
-                  · {i.pricePerUnit.toFixed(2)} грн/{i.unit}
-                </span>
+                <div>
+                  {i.nameUk}
+                  {i.nameEn && (
+                    <span className="text-stone-500"> — {i.nameEn}</span>
+                  )}
+                </div>
+                <div className="text-xs text-stone-400">
+                  {i.pricePerUnit.toFixed(2)} грн/{i.unit}
+                </div>
               </button>
             ))}
             {filtered.length === 0 && (
