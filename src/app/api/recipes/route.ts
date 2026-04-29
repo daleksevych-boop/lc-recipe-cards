@@ -5,8 +5,28 @@ import { prisma } from "@/lib/db";
 const createSchema = z.object({
   nameUk: z.string().min(1),
   nameEn: z.string().min(1),
-  template: z.enum(["blank", "croissant"]).optional().default("blank"),
+  template: z
+    .enum(["blank", "croissant_classic", "croissant_butter"])
+    .optional()
+    .default("blank"),
 });
+
+// Croissant base options. The base ingredient is the croissant itself,
+// added as the first row of the recipe so the user only fills in the toppings.
+const CROISSANT_BASES = {
+  croissant_classic: {
+    nameUk: "Класичний круасан",
+    nameEn: "Classic croissant",
+    grossWeight: 0.095,
+    netWeight: 0.08,
+  },
+  croissant_butter: {
+    nameUk: "Масляний круасан",
+    nameEn: "Butter croissant",
+    grossWeight: 0.08,
+    netWeight: 0.07,
+  },
+} as const;
 
 export async function GET() {
   const list = await prisma.recipe.findMany({
@@ -22,14 +42,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = createSchema.parse(body);
 
-  // Croissant template: standard 95g gross / 80g net base item.
-  const isCroissant = parsed.template === "croissant";
-  const baseItem = isCroissant
+  const base =
+    parsed.template !== "blank" ? CROISSANT_BASES[parsed.template] : null;
+  const baseItem = base
     ? {
-        displayName: "Croissant",
+        displayName: base.nameEn,
         unit: "kg",
-        grossWeight: 0.095,
-        netWeight: 0.08,
+        grossWeight: base.grossWeight,
+        netWeight: base.netWeight,
         pricePerUnitSnapshot: 0,
         sortOrder: 0,
       }
@@ -39,7 +59,7 @@ export async function POST(req: NextRequest) {
     data: {
       nameUk: parsed.nameUk,
       nameEn: parsed.nameEn,
-      totalWeightKg: isCroissant ? 0.08 : null,
+      totalWeightKg: base ? base.netWeight : null,
       ...(baseItem ? { items: { create: [baseItem] } } : {}),
     },
   });
