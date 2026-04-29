@@ -594,8 +594,7 @@ function ItemTable({
           <th className="py-1">Од.</th>
           <th className="py-1 text-right">Брутто</th>
           <th className="py-1 text-right">Нетто</th>
-          <th className="py-1 text-right">Ціна од.</th>
-          <th className="py-1 text-right">∑, грн</th>
+          <th className="py-1 text-right">Ціна, грн</th>
           <th className="py-1"></th>
         </tr>
       </thead>
@@ -679,20 +678,7 @@ function ItemTable({
                   onBlur={() => onAutoGross(idx)}
                 />
               </td>
-              <td className="py-1.5 text-right">
-                <input
-                  type="number"
-                  step="0.01"
-                  className="input text-right"
-                  value={it.pricePerUnitSnapshot}
-                  onChange={(e) =>
-                    onUpdate(idx, {
-                      pricePerUnitSnapshot: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                />
-              </td>
-              <td className="py-1.5 text-right text-stone-700">
+              <td className="py-1.5 text-right text-stone-700 font-medium">
                 {sum.toFixed(2)}
               </td>
               <td className="py-1.5 text-right text-xs">

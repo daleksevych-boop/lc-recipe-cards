@@ -109,6 +109,15 @@ export function RecipeCard({ recipe }: Props) {
           background: #fff;
           overflow: hidden;
         }
+        /* Live preview only: fit the A4 page to the iframe viewport width.
+           Puppeteer renders with @media print, so this is ignored in PDF. */
+        @media screen {
+          html, body { height: 100%; overflow: hidden; }
+          .rc-page {
+            transform: scale(var(--fit-scale, 1));
+            transform-origin: top left;
+          }
+        }
         .rc-watermark-img {
           position: absolute;
           top: 50%;

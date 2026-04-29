@@ -40,6 +40,9 @@ export async function renderPdfFromUrl(url: string): Promise<Buffer> {
       format: "A4",
       printBackground: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      // The card is designed to fit on a single A4 page. Hard-cap so a
+      // tiny pixel overflow doesn't produce a stray second page.
+      pageRanges: "1",
     });
     return Buffer.from(pdf);
   } finally {
