@@ -1,9 +1,9 @@
-// Minimal layout for the print page — no global chrome, just our font setup.
+// Minimal layout for print pages — global chrome is suppressed by the root
+// layout for /print/* routes (see app/_chrome.tsx). We only need to load the
+// print font CSS here and inject the inline fit-scale script used by the
+// live preview iframe in the recipe editor.
 import "./print.css";
 
-// On screen (live preview iframe), scale the A4 page down to fit the iframe
-// width using a CSS variable updated by an inline script. In print mode the
-// transform is disabled so Puppeteer renders at native A4.
 const FIT_SCRIPT = `(function(){
   function fit(){
     var px = (210 * 96 / 25.4); // 210mm in CSS px at 96dpi
@@ -20,15 +20,9 @@ export default function PrintLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <title>Recipe card</title>
-      </head>
-      <body>
-        {children}
-        <script dangerouslySetInnerHTML={{ __html: FIT_SCRIPT }} />
-      </body>
-    </html>
+    <>
+      {children}
+      <script dangerouslySetInnerHTML={{ __html: FIT_SCRIPT }} />
+    </>
   );
 }
