@@ -9,6 +9,7 @@ const itemSchema = z.object({
   grossWeight: z.number().nonnegative(),
   netWeight: z.number().nonnegative(),
   pricePerUnitSnapshot: z.number().nonnegative().default(0),
+  vatPctSnapshot: z.number().min(0).max(100).default(20),
   sortOrder: z.number().int().nonnegative().default(0),
 });
 
@@ -22,7 +23,10 @@ const updateSchema = z.object({
   nameUk: z.string().min(1).optional(),
   nameEn: z.string().min(1).optional(),
   versionCode: z.string().optional(),
+  country: z.string().nullable().optional(),
+  sellingPriceGross: z.number().nullable().optional(),
   sellingPriceNet: z.number().nullable().optional(),
+  vatPct: z.number().min(0).max(100).optional(),
   totalWeightKg: z.number().nullable().optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),
   authorEmail: z.string().nullable().optional(),
@@ -55,9 +59,27 @@ export async function PATCH(
 
   const updated = await prisma.$transaction(async (tx) => {
     if (Object.keys(recipeFields).length > 0) {
+      // Auto-derive sellingPriceNet from sellingPriceGross + vatPct.
+      const data: Record<string, unknown> = { ...recipeFields };
+      if ("sellingPriceGross" in data || "vatPct" in data) {
+        const current = await tx.recipe.findUnique({
+          where: { id: params.id },
+          select: { sellingPriceGross: true, vatPct: true },
+        });
+        const gross =
+          ("sellingPriceGross" in data
+            ? (data.sellingPriceGross as number | null | undefined)
+            : current?.sellingPriceGross) ?? null;
+        const vat =
+          ("vatPct" in data
+            ? (data.vatPct as number | undefined)
+            : current?.vatPct) ?? 20;
+        data.sellingPriceNet =
+          gross != null ? gross / (1 + vat / 100) : null;
+      }
       await tx.recipe.update({
         where: { id: params.id },
-        data: recipeFields,
+        data,
       });
     }
     if (items) {
@@ -72,6 +94,7 @@ export async function PATCH(
             grossWeight: it.grossWeight,
             netWeight: it.netWeight,
             pricePerUnitSnapshot: it.pricePerUnitSnapshot,
+            vatPctSnapshot: it.vatPctSnapshot ?? 20,
             sortOrder: it.sortOrder ?? idx,
           })),
         });

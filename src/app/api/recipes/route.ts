@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { vatForCountry } from "@/lib/countryVat";
 
 const createSchema = z.object({
   nameUk: z.string().min(1),
   nameEn: z.string().min(1),
-  template: z
-    .enum(["blank", "croissant_classic", "croissant_butter"])
-    .optional()
-    .default("blank"),
+  country: z.enum(["NO", "FR"]),
+  template: z.enum(["croissant_classic", "croissant_butter"]),
 });
 
 // Croissant base options. The base ingredient is the croissant itself,
@@ -42,25 +41,26 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = createSchema.parse(body);
 
-  const base =
-    parsed.template !== "blank" ? CROISSANT_BASES[parsed.template] : null;
-  const baseItem = base
-    ? {
-        displayName: base.nameEn,
-        unit: "kg",
-        grossWeight: base.grossWeight,
-        netWeight: base.netWeight,
-        pricePerUnitSnapshot: 0,
-        sortOrder: 0,
-      }
-    : null;
+  const base = CROISSANT_BASES[parsed.template];
+  const vat = vatForCountry(parsed.country);
+  const baseItem = {
+    displayName: base.nameEn,
+    unit: "kg",
+    grossWeight: base.grossWeight,
+    netWeight: base.netWeight,
+    pricePerUnitSnapshot: 0,
+    vatPctSnapshot: vat,
+    sortOrder: 0,
+  };
 
   const created = await prisma.recipe.create({
     data: {
       nameUk: parsed.nameUk,
       nameEn: parsed.nameEn,
-      totalWeightKg: base ? base.netWeight : null,
-      ...(baseItem ? { items: { create: [baseItem] } } : {}),
+      country: parsed.country,
+      vatPct: vat,
+      totalWeightKg: null, // computed from items
+      items: { create: [baseItem] },
     },
   });
   return NextResponse.json(created, { status: 201 });

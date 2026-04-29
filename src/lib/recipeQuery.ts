@@ -14,7 +14,10 @@ export async function getRecipeView(id: string): Promise<RecipeView | null> {
     nameUk: r.nameUk,
     nameEn: r.nameEn,
     versionCode: r.versionCode,
+    country: r.country,
+    sellingPriceGross: r.sellingPriceGross,
     sellingPriceNet: r.sellingPriceNet,
+    vatPct: r.vatPct,
     totalWeightKg: r.totalWeightKg,
     items: r.items.map((it) => ({
       displayName: it.displayName,
@@ -22,6 +25,7 @@ export async function getRecipeView(id: string): Promise<RecipeView | null> {
       grossWeight: it.grossWeight,
       netWeight: it.netWeight,
       pricePerUnitSnapshot: it.pricePerUnitSnapshot,
+      vatPctSnapshot: it.vatPctSnapshot,
     })),
     steps: r.steps.map((s) => ({ stepNumber: s.stepNumber, text: s.text })),
   };

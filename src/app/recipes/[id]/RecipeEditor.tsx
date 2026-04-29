@@ -24,6 +24,7 @@ type Item = {
   grossWeight: number;
   netWeight: number;
   pricePerUnitSnapshot: number;
+  vatPctSnapshot: number;
   sortOrder: number;
 };
 
@@ -39,7 +40,10 @@ type Recipe = {
   nameUk: string;
   nameEn: string;
   versionCode: string;
+  country: string | null;
+  sellingPriceGross: number | null;
   sellingPriceNet: number | null;
+  vatPct: number;
   totalWeightKg: number | null;
   status: string;
   items: Item[];
@@ -60,6 +64,12 @@ export default function RecipeEditor({
   const [previewKey, setPreviewKey] = useState(0);
   const debouncedSave = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const vatRate = recipe.vatPct ?? 20;
+  const sellingPriceNet =
+    recipe.sellingPriceGross != null
+      ? recipe.sellingPriceGross / (1 + vatRate / 100)
+      : null;
+
   const cost = useMemo(
     () =>
       recipe.items.reduce(
@@ -68,12 +78,24 @@ export default function RecipeEditor({
       ),
     [recipe.items],
   );
+  const costGross = useMemo(
+    () =>
+      recipe.items.reduce(
+        (acc, it) =>
+          acc +
+          (it.netWeight || 0) *
+            (it.pricePerUnitSnapshot || 0) *
+            (1 + (it.vatPctSnapshot ?? vatRate) / 100),
+        0,
+      ),
+    [recipe.items, vatRate],
+  );
 
   const foodcostUah =
-    recipe.sellingPriceNet != null ? recipe.sellingPriceNet - cost : null;
+    sellingPriceNet != null ? sellingPriceNet - cost : null;
   const foodcostPct =
-    recipe.sellingPriceNet != null && recipe.sellingPriceNet > 0
-      ? (cost / recipe.sellingPriceNet) * 100
+    sellingPriceNet != null && sellingPriceNet > 0
+      ? (cost / sellingPriceNet) * 100
       : null;
 
   const totalNetKg = useMemo(
@@ -104,8 +126,10 @@ export default function RecipeEditor({
           nameUk: recipe.nameUk,
           nameEn: recipe.nameEn,
           versionCode: recipe.versionCode,
-          sellingPriceNet: recipe.sellingPriceNet,
-          totalWeightKg: recipe.totalWeightKg,
+          country: recipe.country,
+          sellingPriceGross: recipe.sellingPriceGross,
+          vatPct: recipe.vatPct,
+          totalWeightKg: null, // computed from items
           status: recipe.status,
           items: recipe.items.map((it, idx) => ({
             ingredientId: it.ingredientId,
@@ -114,6 +138,7 @@ export default function RecipeEditor({
             grossWeight: it.grossWeight,
             netWeight: it.netWeight,
             pricePerUnitSnapshot: it.pricePerUnitSnapshot,
+            vatPctSnapshot: it.vatPctSnapshot ?? vatRate,
             sortOrder: idx,
           })),
           steps: recipe.steps.map((s, idx) => ({
@@ -141,6 +166,7 @@ export default function RecipeEditor({
       grossWeight: 0,
       netWeight: 0,
       pricePerUnitSnapshot: ing?.pricePerUnit ?? 0,
+      vatPctSnapshot: vatRate,
       sortOrder: recipe.items.length,
     };
     setRecipe({ ...recipe, items: [...recipe.items, item] });
@@ -299,17 +325,46 @@ export default function RecipeEditor({
                   <option value="archived">архів</option>
                 </select>
               </Field>
-              <Field label="Total weight, кг (override)">
+              <Field label="Країна">
+                <select
+                  className="input"
+                  value={recipe.country ?? "NO"}
+                  onChange={(e) => {
+                    const c = e.target.value as "NO" | "FR";
+                    const newVat = c === "NO" ? 25 : 20;
+                    setRecipe({
+                      ...recipe,
+                      country: c,
+                      vatPct: newVat,
+                      items: recipe.items.map((it) => ({
+                        ...it,
+                        vatPctSnapshot: newVat,
+                      })),
+                    });
+                  }}
+                >
+                  <option value="NO">Norway (ПДВ 25%)</option>
+                  <option value="FR">France (ПДВ 20%)</option>
+                </select>
+              </Field>
+              <Field label={`Total weight, кг (авто з нетто)`}>
+                <input
+                  type="text"
+                  className="input bg-stone-100"
+                  value={totalNetKg.toFixed(3)}
+                  readOnly
+                />
+              </Field>
+              <Field label={`Ціна брутто (грн, з ПДВ ${vatRate}%)`}>
                 <input
                   type="number"
-                  step="0.001"
+                  step="0.01"
                   className="input"
-                  value={recipe.totalWeightKg ?? ""}
-                  placeholder={`авто: ${totalNetKg.toFixed(3)}`}
+                  value={recipe.sellingPriceGross ?? ""}
                   onChange={(e) =>
                     setRecipe({
                       ...recipe,
-                      totalWeightKg:
+                      sellingPriceGross:
                         e.target.value === ""
                           ? null
                           : parseFloat(e.target.value),
@@ -317,21 +372,16 @@ export default function RecipeEditor({
                   }
                 />
               </Field>
-              <Field label="Ціна нетто (грн, без ПДВ)">
+              <Field label={`Ціна нетто (авто, без ПДВ)`}>
                 <input
-                  type="number"
-                  step="0.01"
-                  className="input"
-                  value={recipe.sellingPriceNet ?? ""}
-                  onChange={(e) =>
-                    setRecipe({
-                      ...recipe,
-                      sellingPriceNet:
-                        e.target.value === ""
-                          ? null
-                          : parseFloat(e.target.value),
-                    })
+                  type="text"
+                  className="input bg-stone-100"
+                  value={
+                    sellingPriceNet != null
+                      ? sellingPriceNet.toFixed(2)
+                      : ""
                   }
+                  readOnly
                 />
               </Field>
             </div>
@@ -339,12 +389,27 @@ export default function RecipeEditor({
 
           <Section title="Калькулятор фудкосту">
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <Stat label="Собівартість" value={`${cost.toFixed(2)} грн`} />
+              <Stat
+                label="Собівартість нетто"
+                value={`${cost.toFixed(2)} грн`}
+              />
+              <Stat
+                label={`Собівартість брутто (з ПДВ ${vatRate}%)`}
+                value={`${costGross.toFixed(2)} грн`}
+              />
               <Stat
                 label="Ціна нетто"
                 value={
-                  recipe.sellingPriceNet != null
-                    ? `${recipe.sellingPriceNet.toFixed(2)} грн`
+                  sellingPriceNet != null
+                    ? `${sellingPriceNet.toFixed(2)} грн`
+                    : "—"
+                }
+              />
+              <Stat
+                label="Ціна брутто"
+                value={
+                  recipe.sellingPriceGross != null
+                    ? `${recipe.sellingPriceGross.toFixed(2)} грн`
                     : "—"
                 }
               />
@@ -362,9 +427,8 @@ export default function RecipeEditor({
               />
             </div>
             <p className="mt-2 text-xs text-stone-500">
-              Фудкост (грн) = ціна нетто − собівартість. Фудкост (%) =
-              собівартість / ціна нетто × 100%. Норматив підсвічується червоним
-              при &gt; 35%.
+              Фудкост (%) = собівартість нетто / ціна нетто × 100%.
+              Підсвічується червоним при &gt; 35%.
             </p>
           </Section>
 
@@ -570,7 +634,6 @@ function ItemTable({
                     {ingredients.map((g) => (
                       <option key={g.id} value={g.id}>
                         {g.nameUk}
-                        {g.nameEn ? ` — ${g.nameEn}` : ""}
                       </option>
                     ))}
                   </select>
@@ -702,12 +765,7 @@ function AddItem({
                 }}
                 className="block w-full rounded px-2 py-1 text-left text-sm hover:bg-stone-100"
               >
-                <div>
-                  {i.nameUk}
-                  {i.nameEn && (
-                    <span className="text-stone-500"> — {i.nameEn}</span>
-                  )}
-                </div>
+                <div>{i.nameUk}</div>
                 <div className="text-xs text-stone-400">
                   {i.pricePerUnit.toFixed(2)} грн/{i.unit}
                 </div>

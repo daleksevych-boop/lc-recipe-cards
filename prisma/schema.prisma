@@ -20,7 +20,9 @@ model Ingredient {
   nameUk        String
   nameEn        String?
   unit          String   // "kg" | "l" | "pcs"
-  pricePerUnit  Float    // UAH per unit (per kg / per l / per pcs)
+  pricePerUnit  Float    // UAH per unit (per kg / per l / per pcs), NET of VAT
+  // VAT rate %, used to compute gross price for foodcost. 0..100
+  vatPct        Float    @default(20)
   // Cold processing waste % (e.g. trimming, peeling). 0..100
   wasteColdPct  Float    @default(0)
   // Thermal processing waste % (e.g. baking, frying). 0..100
@@ -41,8 +43,14 @@ model Recipe {
   nameEn        String
   // Versioning code shown in PDF footer, e.g. "NO | 03.26"
   versionCode   String   @default("NO | 03.26")
-  // Selling price net of VAT (UAH). Used for foodcost calculation.
-  sellingPriceNet Float? 
+  // Country / market the card is designed for. "NO" | "FR" | null.
+  country       String?
+  // Selling price gross (incl. VAT, UAH). User input.
+  sellingPriceGross Float?
+  // Selling price net of VAT (UAH). Computed from gross / (1 + vatPct/100).
+  sellingPriceNet Float?
+  // Recipe-level VAT % used for selling price calc. Default 20 (UA).
+  vatPct        Float    @default(20)
   status        String   @default("draft") // draft | published | archived
   // Total weight override (kg). If null — sum of net weights from items.
   totalWeightKg Float?
@@ -69,8 +77,10 @@ model RecipeItem {
   // For unit="pcs": values are integers/halves (e.g. 1, 0.5) — rendered as "1 pcs."
   grossWeight   Float
   netWeight     Float
-  // Snapshot of price at the moment of editing (UAH per unit)
+  // Snapshot of price at the moment of editing (UAH per unit, NET of VAT)
   pricePerUnitSnapshot Float @default(0)
+  // Snapshot of VAT % at the moment of editing
+  vatPctSnapshot Float @default(20)
   sortOrder     Int      @default(0)
 
   @@index([recipeId])

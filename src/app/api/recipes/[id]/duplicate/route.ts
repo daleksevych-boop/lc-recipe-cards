@@ -16,7 +16,10 @@ export async function POST(
       nameUk: `${orig.nameUk} (копія)`,
       nameEn: `${orig.nameEn} (copy)`,
       versionCode: orig.versionCode,
+      country: orig.country,
+      sellingPriceGross: orig.sellingPriceGross,
       sellingPriceNet: orig.sellingPriceNet,
+      vatPct: orig.vatPct,
       totalWeightKg: orig.totalWeightKg,
       status: "draft",
       items: {
@@ -27,6 +30,7 @@ export async function POST(
           grossWeight: it.grossWeight,
           netWeight: it.netWeight,
           pricePerUnitSnapshot: it.pricePerUnitSnapshot,
+          vatPctSnapshot: it.vatPctSnapshot,
           sortOrder: it.sortOrder,
         })),
       },

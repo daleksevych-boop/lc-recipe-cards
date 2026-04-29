@@ -9,7 +9,12 @@ export function computeCost(recipe: RecipeView): CostSummary {
   const perItemCost = recipe.items.map(
     (it) => (it.netWeight || 0) * (it.pricePerUnitSnapshot || 0),
   );
+  const perItemCostGross = recipe.items.map((it, idx) => {
+    const vat = it.vatPctSnapshot ?? 20;
+    return perItemCost[idx] * (1 + vat / 100);
+  });
   const costTotal = perItemCost.reduce((a, b) => a + b, 0);
+  const costTotalGross = perItemCostGross.reduce((a, b) => a + b, 0);
 
   const totalNetKg = recipe.items.reduce((acc, it) => {
     if (it.unit === "kg" || it.unit === "l") return acc + (it.netWeight || 0);
@@ -21,7 +26,15 @@ export function computeCost(recipe: RecipeView): CostSummary {
   const foodcostPct =
     price != null && price > 0 ? (costTotal / price) * 100 : null;
 
-  return { costTotal, perItemCost, foodcostUah, foodcostPct, totalNetKg };
+  return {
+    costTotal,
+    costTotalGross,
+    perItemCost,
+    perItemCostGross,
+    foodcostUah,
+    foodcostPct,
+    totalNetKg,
+  };
 }
 
 /** Format a weight cell value as it appears in the PDF table. */

@@ -21,8 +21,14 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
   const [form, setForm] = useState<{
     nameUk: string;
     nameEn: string;
+    country: "NO" | "FR";
     template: "croissant_classic" | "croissant_butter";
-  }>({ nameUk: "", nameEn: "", template: "croissant_classic" });
+  }>({
+    nameUk: "",
+    nameEn: "",
+    country: "NO",
+    template: "croissant_classic",
+  });
 
   async function create() {
     if (!form.nameUk || !form.nameEn) {
@@ -61,9 +67,6 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Техкартки</h1>
-          <p className="text-sm text-stone-600">
-            Усі ваші техкартки. Натисніть на назву для редагування.
-          </p>
         </div>
         <button
           onClick={() => setCreating(true)}
@@ -187,6 +190,25 @@ export default function RecipesClient({ initial }: { initial: RecipeRow[] }) {
                   onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
                 />
               </label>
+              <fieldset className="mt-3 rounded-md border border-stone-200 p-2 text-sm">
+                <legend className="px-1 text-xs text-stone-600">Країна</legend>
+                <label className="flex items-center gap-2 py-1">
+                  <input
+                    type="radio"
+                    checked={form.country === "NO"}
+                    onChange={() => setForm({ ...form, country: "NO" })}
+                  />
+                  Norway <span className="text-stone-500">(ПДВ 25%)</span>
+                </label>
+                <label className="flex items-center gap-2 py-1">
+                  <input
+                    type="radio"
+                    checked={form.country === "FR"}
+                    onChange={() => setForm({ ...form, country: "FR" })}
+                  />
+                  France <span className="text-stone-500">(ПДВ 20%)</span>
+                </label>
+              </fieldset>
               <fieldset className="mt-3 rounded-md border border-stone-200 p-2 text-sm">
                 <legend className="px-1 text-xs text-stone-600">Основа</legend>
                 <label className="flex items-center gap-2 py-1">
